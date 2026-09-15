@@ -18,10 +18,28 @@ app.layout = html.Div(
                 html.H1("Medical Operations Intelligence Dashboard", style={"margin": "0"}),
                 html.Div(
                     [
-                        dcc.Link(page["name"], href=page["path"], style={"marginRight": "20px"})
+                        dcc.Link(
+                            page["name"],
+                            href=page["path"],
+                            style={
+                                "padding": "8px 14px",
+                                "borderRadius": "8px",
+                                "textDecoration": "none",
+                                "color": "#0F172A",
+                                "fontWeight": "600",
+                                "fontSize": "13px",
+                                "backgroundColor": "#F8FAFC",
+                                "border": "1px solid #E2E8F0",
+                            },
+                        )
                         for page in dash.page_registry.values()
                     ],
-                    style={"marginTop": "10px"},
+                    style={
+                        "marginTop": "14px",
+                        "display": "flex",
+                        "flexWrap": "wrap",
+                        "gap": "8px",
+                    },
                 ),
             ],
             style={
@@ -34,6 +52,5 @@ app.layout = html.Div(
     ],
     style={"fontFamily": "Arial, sans-serif"},
 )
-
 if __name__ == "__main__":
     app.run(debug=True)

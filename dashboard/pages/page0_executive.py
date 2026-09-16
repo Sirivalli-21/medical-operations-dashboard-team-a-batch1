@@ -5,6 +5,26 @@ Member 5 — Executive Dashboard Design
 
 import dash
 from dash import html
+import pandas as pd
+import os
+
+ADMISSIONS_PATH = os.path.join(
+    os.path.dirname(__file__), "..", "..", "milestone3", "data", "processed", "admissions_clean.csv"
+)
+
+def get_currently_admitted():
+    df = pd.read_csv(ADMISSIONS_PATH)
+    df["Admission_Date"] = pd.to_datetime(df["Admission_Date"])
+    df["Discharge_Date"] = pd.to_datetime(df["Discharge_Date"])
+
+    reference_date = df["Admission_Date"].max()
+
+    currently_admitted = df[
+        (df["Admission_Date"] <= reference_date) &
+        (df["Discharge_Date"] > reference_date)
+    ]
+
+    return len(currently_admitted)
 
 
 # ---------------------------------------------------------
@@ -119,9 +139,9 @@ layout = html.Div(
             [
 
                 kpi_card(
-                    "TOTAL ADMISSIONS",
-                    "5,001",
-                    "Patient flow volume",
+                    "CURRENTLY ADMITTED",
+                    f"{get_currently_admitted():,}",
+                    "Active patients as of latest data",
                 ),
 
                 kpi_card(

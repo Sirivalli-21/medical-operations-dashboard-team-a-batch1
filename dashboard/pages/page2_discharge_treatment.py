@@ -5,7 +5,7 @@ Dashboard Page 2 — Patient Discharge & Flow (Keerthi) + Treatment & Service De
 import dash
 from dash import html
 
-dash.register_page(__name__, path="/page2", name="Page 2: Discharge & Treatment")
+dash.register_page(__name__, path="/page2", name="Page 2: Discharge & Treatment",order=2,)
 
 layout = html.Div(
     [

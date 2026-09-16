@@ -11,7 +11,7 @@ import dash
 from dash import html
 from page4_workforce_component import workforce_section
 
-dash.register_page(__name__, path="/page4", name="Page 4: Bed & Workforce")
+dash.register_page(__name__, path="/page4", name="Page 4: Bed & Workforce",order=4,)
 
 layout = html.Div(
     [

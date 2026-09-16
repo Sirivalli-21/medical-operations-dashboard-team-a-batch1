@@ -4,7 +4,8 @@ from dash import html
 dash.register_page(
     __name__,
     path="/page6",
-    name="Page 6: Patient Distribution"
+    name="Page 6: Patient Distribution",
+    order=6,
 )
 
 layout = html.Div([

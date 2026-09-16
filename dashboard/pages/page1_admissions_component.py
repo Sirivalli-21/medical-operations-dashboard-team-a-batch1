@@ -1,39 +1,81 @@
-"""
-Admission Trends — Visualization component (Member 2 / Nafisa)
-Registered as part of Page 1 alongside Tanvi's Department-wise Patient Load.
-"""
-
+import os
 import pandas as pd
 import plotly.graph_objects as go
-from dash import dcc, html, Input, Output, callback
+from dash import dcc, html
 
-# ---------------------------------------------------------------------------
-# 1. Load and prep data
-# ---------------------------------------------------------------------------
-df = pd.read_csv("data/processed/admissions_clean.csv")
-df["Admission_Date"] = pd.to_datetime(df["Admission_Date"], errors="coerce")
-df["Admission_Month_Year"] = df["Admission_Date"].dt.to_period("M").astype(str)
-
-monthly_admissions = (
-    df.groupby("Admission_Month_Year")["Admission_ID"]
-    .nunique()
-    .reset_index(name="Admission_Count")
-    .sort_values("Admission_Month_Year")
-)
-monthly_admissions["Admission_Month_Year"] = pd.to_datetime(
-    monthly_admissions["Admission_Month_Year"], format="%Y-%m"
+DATA_PATH = os.path.join(
+    os.path.dirname(__file__),
+    "..",
+    "..",
+    "data",
+    "processed",
+    "admissions_clean.csv",
 )
 
-# ---------------------------------------------------------------------------
-# 2. KPIs
-# ---------------------------------------------------------------------------
-total_admissions = int(df["Admission_ID"].nunique())
-avg_per_month = round(monthly_admissions["Admission_Count"].mean(), 1)
-peak_row = monthly_admissions.loc[monthly_admissions["Admission_Count"].idxmax()]
-low_row = monthly_admissions.loc[monthly_admissions["Admission_Count"].idxmin()]
+def format_kpi(value):
+    if value is None or pd.isna(value):
+        return "0"
+    return f"{int(float(value)):,}"
 
+def kpi_card(title, value, description, icon="fa-chart-simple", color="#0F172A"):
+    return html.Div(
+        [
+            html.I(
+                className=f"fa-solid {icon}",
+                style={"fontSize": "20px", "color": color, "marginBottom": "10px"},
+            ),
+            html.Div(
+                title,
+                style={
+                    "fontSize": "11px",
+                    "letterSpacing": "0.08em",
+                    "textTransform": "uppercase",
+                    "color": "#64748B",
+                },
+            ),
+            html.Div(
+                value,
+                style={
+                    "fontSize": "28px",
+                    "fontWeight": "700",
+                    "color": color,
+                    "marginTop": "6px",
+                },
+            ),
+            html.Div(
+                description,
+                style={"fontSize": "12px", "color": "#64748B", "marginTop": "8px"},
+            ),
+        ],
+        style={
+            "backgroundColor": "#FFFFFF",
+            "borderRadius": "12px",
+            "padding": "18px 16px",
+            "boxShadow": "0 4px 12px rgba(15, 23, 42, 0.06)",
+            "border": "1px solid #E2E8F0",
+            "minHeight": "150px",
+        },
+    )
 
-def make_figure(filtered_df: pd.DataFrame) -> go.Figure:
+def load_admissions_data():
+    if not os.path.exists(DATA_PATH):
+        return pd.DataFrame()
+
+    df = pd.read_csv(DATA_PATH)
+    df["Admission_Date"] = pd.to_datetime(df["Admission_Date"], errors="coerce")
+    df["Admission_Month_Year"] = df["Admission_Date"].dt.to_period("M").astype(str)
+
+    monthly = (
+        df.groupby("Admission_Month_Year")["Admission_ID"]
+        .nunique()
+        .reset_index(name="Admission_Count")
+        .sort_values("Admission_Month_Year")
+    )
+
+    monthly["Admission_Month_Year"] = pd.to_datetime(monthly["Admission_Month_Year"], format="%Y-%m")
+    return monthly
+
+def make_figure(filtered_df):
     fig = go.Figure()
     fig.add_trace(
         go.Scatter(
@@ -55,89 +97,61 @@ def make_figure(filtered_df: pd.DataFrame) -> go.Figure:
     )
     return fig
 
+def admissions_section():
+    monthly_admissions = load_admissions_data()
 
-def kpi_card(label: str, value) -> html.Div:
+    if monthly_admissions.empty:
+        total_admissions = 0
+        avg_per_month = 0
+        peak_label = "N/A"
+        peak_value = 0
+        low_label = "N/A"
+        low_value = 0
+    else:
+        total_admissions = int(monthly_admissions["Admission_Count"].sum())
+        avg_per_month = int(monthly_admissions["Admission_Count"].mean())
+        peak_row = monthly_admissions.loc[monthly_admissions["Admission_Count"].idxmax()]
+        low_row = monthly_admissions.loc[monthly_admissions["Admission_Count"].idxmin()]
+        peak_label = peak_row["Admission_Month_Year"].strftime("%b %Y")
+        peak_value = int(peak_row["Admission_Count"])
+        low_label = low_row["Admission_Month_Year"].strftime("%b %Y")
+        low_value = int(low_row["Admission_Count"])
+
     return html.Div(
         [
-            html.Div(
-                label,
-                style={
-                    "fontSize": "13px",
-                    "color": "#666666",
-                },
-            ),
-            html.Div(
-                str(value),
+            html.H1(
+                "Admission Trends",
                 style={
                     "fontSize": "26px",
                     "fontWeight": "700",
-                    "color": "#000000",
-                    "backgroundColor": "#ffffff",
-                    "display": "block",
-                    "visibility": "visible",
-                    "opacity": "1",
+                    "color": "#0F172A",
+                    "marginBottom": "18px",
                 },
             ),
+            html.Div(
+                [
+                    kpi_card("Total Admissions", format_kpi(total_admissions), "Actual patient admissions", icon="fa-hospital-user", color="#0F172A"),
+                    kpi_card("Avg / Month", format_kpi(avg_per_month), "Average monthly admissions", icon="fa-calendar-alt", color="#0F172A"),
+                    kpi_card("Peak Month", f"{peak_label} ({format_kpi(peak_value)})", "Highest monthly admissions", icon="fa-arrow-trend-up", color="#0F172A"),
+                    kpi_card("Lowest Month", f"{low_label} ({format_kpi(low_value)})", "Lowest monthly admissions", icon="fa-arrow-trend-down", color="#0F172A"),
+                ],
+                style={"display": "grid", "gridTemplateColumns": "repeat(4, minmax(0, 1fr))", "gap": "16px", "marginBottom": "24px"},
+            ),
+            html.Div(
+                dcc.RangeSlider(
+                    id="month-range",
+                    min=0,
+                    max=len(monthly_admissions) - 1 if not monthly_admissions.empty else 0,
+                    step=1,
+                    value=[0, len(monthly_admissions) - 1] if not monthly_admissions.empty else [0, 0],
+                    marks={i: d.strftime("%b'%y") for i, d in enumerate(monthly_admissions["Admission_Month_Year"])} if not monthly_admissions.empty else {},
+                ),
+                style={"marginBottom": "20px"},
+            ),
+            dcc.Graph(
+                id="admission-chart",
+                figure=make_figure(monthly_admissions) if not monthly_admissions.empty else go.Figure(),
+            ),
         ],
-        style={
-            "padding": "16px",
-            "borderRadius": "10px",
-            "backgroundColor": "#f5f5f7",
-            "textAlign": "center",
-            "minWidth": "150px",
-        },
+        style={"padding": "20px"},
     )
-
-
-kpi_row = html.Div(
-    [
-        kpi_card("Total Admissions", f"{total_admissions:,}"),
-        kpi_card("Avg / Month", avg_per_month),
-        kpi_card(
-            "Peak Month",
-            f"{peak_row['Admission_Month_Year'].strftime('%b %Y')} ({int(peak_row['Admission_Count'])})",
-        ),
-        kpi_card(
-            "Lowest Month",
-            f"{low_row['Admission_Month_Year'].strftime('%b %Y')} ({int(low_row['Admission_Count'])})",
-        ),
-    ],
-    style={"display": "flex", "gap": "16px", "marginBottom": "20px", "flexWrap": "wrap"},
-)
-
-range_slider = dcc.RangeSlider(
-    id="admission-month-range",
-    className="admission-range-slider",
-    min=0,
-    max=len(monthly_admissions) - 1,
-    step=1,
-    value=[0, len(monthly_admissions) - 1],
-    marks={
-        i: {
-            "label": d.strftime("%b'%y"),
-            "style": {
-                "color": "#ffffff",
-                "fontSize": "12px",
-            },
-        }
-        for i, d in enumerate(monthly_admissions["Admission_Month_Year"])
-    },
-)
-# ---------------------------------------------------------------------------
-# Exported layout piece — imported and placed into pages/page1_patient_flow.py
-# ---------------------------------------------------------------------------
-admissions_section = html.Div(
-    [
-        html.H3("Admission Trends"),
-        kpi_row,
-        html.Div(range_slider, style={"marginBottom": "24px", "padding": "0 12px"}),
-        dcc.Graph(id="admission-chart", figure=make_figure(monthly_admissions)),
-    ],
-    style={"marginBottom": "40px"},
-)
-
-
-@callback(Output("admission-chart", "figure"), Input("admission-month-range", "value"))
-def update_admission_chart(rng):
-    sliced = monthly_admissions.iloc[rng[0] : rng[1] + 1]
-    return make_figure(sliced)

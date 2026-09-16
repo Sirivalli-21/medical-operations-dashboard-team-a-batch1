@@ -5,7 +5,7 @@ Dashboard Page 3 — Bottlenecks & Capacity Strain (Sarthak) + Surgery Workload 
 import dash
 from dash import html
 
-dash.register_page(__name__, path="/page3", name="Page 3: Bottlenecks & Surgery")
+dash.register_page(__name__, path="/page3", name="Page 3: Bottlenecks & Surgery",order=3,)
 
 layout = html.Div(
     [

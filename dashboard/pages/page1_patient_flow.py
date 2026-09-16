@@ -1,20 +1,24 @@
-"""
-Dashboard Page 1 — Admission Trends (Nafisa) + Department-wise Patient Load (Tanvi)
-"""
-
-import sys
 import os
-
-sys.path.insert(0, os.path.dirname(__file__))
-
+import sys
 import dash
 from dash import html
+
+BASE_DIR = os.path.dirname(__file__)
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
+
 from page1_admissions_component import admissions_section
 
-dash.register_page(__name__, path="/page1", name="Page 1: Patient Flow")
+dash.register_page(
+    __name__,
+    path="/page1",
+    name="Page 1: Patient Flow",
+    order=1,
+)
+
 layout = html.Div(
     [
-        admissions_section,
+        admissions_section(),
         html.Hr(),
         html.H3("Department-wise Patient Load"),
         html.Iframe(

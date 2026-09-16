@@ -5,7 +5,7 @@ Dashboard Page 5 — Department-wise Resource Utilization (Deepika/team) + Bench
 import dash
 from dash import html
 
-dash.register_page(__name__, path="/page5", name="Page 5: Resources & Benchmarks")
+dash.register_page(__name__, path="/page5", name="Page 5: Resources & Benchmarks",order=5,)
 
 layout = html.Div(
     [

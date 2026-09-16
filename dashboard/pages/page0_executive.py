@@ -1,335 +1,221 @@
-"""
-Dashboard Page 0 — Executive Overview
-Member 5 — Executive Dashboard Design
-"""
-
+import os
+import pandas as pd
 import dash
 from dash import html
-import pandas as pd
-import os
-
-ADMISSIONS_PATH = os.path.join(
-    os.path.dirname(__file__), "..", "..", "milestone3", "data", "processed", "admissions_clean.csv"
-)
-
-def get_currently_admitted():
-    df = pd.read_csv(ADMISSIONS_PATH)
-    df["Admission_Date"] = pd.to_datetime(df["Admission_Date"])
-    df["Discharge_Date"] = pd.to_datetime(df["Discharge_Date"])
-
-    reference_date = df["Admission_Date"].max()
-
-    currently_admitted = df[
-        (df["Admission_Date"] <= reference_date) &
-        (df["Discharge_Date"] > reference_date)
-    ]
-
-    return len(currently_admitted)
-
-
-# ---------------------------------------------------------
-# Register page
-# ---------------------------------------------------------
 
 dash.register_page(
     __name__,
     path="/",
     name="Executive Overview",
+    order=0,
 )
 
+ADMISSIONS_PATH = os.path.join(
+    os.path.dirname(__file__),
+    "..",
+    "..",
+    "milestone3",
+    "data",
+    "processed",
+    "admissions_clean.csv",
+)
 
-# ---------------------------------------------------------
-# Reusable KPI card
-# ---------------------------------------------------------
+def format_kpi(value):
+    if value is None or pd.isna(value):
+        return "0"
+    return f"{int(float(value)):,}"
 
 def kpi_card(title, value, description, icon="fa-chart-simple", color="#0F172A"):
     return html.Div(
         [
-            html.P(
+            html.I(
+                className=f"fa-solid {icon}",
+                style={"fontSize": "20px", "color": color, "marginBottom": "10px"},
+            ),
+            html.Div(
                 title,
                 style={
-                    "margin": "0 0 8px 0",
-                    "fontSize": "13px",
-                    "fontWeight": "700",
+                    "fontSize": "11px",
+                    "letterSpacing": "0.08em",
+                    "textTransform": "uppercase",
                     "color": "#64748B",
-                    "letterSpacing": "0.5px",
                 },
             ),
-
-            html.H2(
+            html.Div(
                 value,
                 style={
-                    "margin": "0",
-                    "fontSize": "30px",
+                    "fontSize": "28px",
                     "fontWeight": "700",
-                    "color": "#0F172A",
+                    "color": color,
+                    "marginTop": "6px",
                 },
             ),
-
-            html.P(
+            html.Div(
                 description,
-                style={
-                    "margin": "8px 0 0 0",
-                    "fontSize": "13px",
-                    "color": "#64748B",
-                },
+                style={"fontSize": "12px", "color": "#64748B", "marginTop": "8px"},
             ),
         ],
         style={
             "backgroundColor": "#FFFFFF",
-            "padding": "22px",
             "borderRadius": "12px",
+            "padding": "18px 16px",
+            "boxShadow": "0 4px 12px rgba(15, 23, 42, 0.06)",
             "border": "1px solid #E2E8F0",
-            "boxShadow": "0 2px 6px rgba(15, 23, 42, 0.06)",
+            "minHeight": "150px",
         },
     )
 
+def get_current_admissions():
+    if not os.path.exists(ADMISSIONS_PATH):
+        return 0
 
-# ---------------------------------------------------------
-# Executive Overview Layout
-# ---------------------------------------------------------
+    df = pd.read_csv(ADMISSIONS_PATH)
+    if df.empty:
+        return 0
 
-layout = html.Div(
-    [
+    if "admission_date" in df.columns:
+        df["admission_date"] = pd.to_datetime(df["admission_date"], errors="coerce")
+        df = df.dropna(subset=["admission_date"])
 
-        # -------------------------------------------------
-        # Header
-        # -------------------------------------------------
+    return int(len(df))
 
-        html.Div(
-            [
-                html.H1(
-                    "Healthcare Operations Intelligence Dashboard",
-                    style={
-                        "margin": "0",
-                        "fontSize": "32px",
-                        "fontWeight": "700",
-                        "color": "#0F172A",
-                    },
-                ),
+def get_summary_stats():
+    if not os.path.exists(ADMISSIONS_PATH):
+        return {
+            "currently_admitted": 0,
+            "bed_utilization": "N/A",
+            "workforce": "N/A",
+            "capacity_gaps": "N/A",
+        }
 
-                html.P(
-                    "Executive Overview | Decision Support",
-                    style={
-                        "marginTop": "8px",
-                        "marginBottom": "0",
-                        "color": "#64748B",
-                        "fontSize": "16px",
-                    },
-                ),
-            ],
-            style={
-                "marginBottom": "28px",
-            },
-        ),
+    df = pd.read_csv(ADMISSIONS_PATH)
+    total = int(len(df)) if not df.empty else 0
 
-        # -------------------------------------------------
-        # Executive Snapshot
-        # -------------------------------------------------
+    return {
+        "currently_admitted": total,
+        "bed_utilization": "Page 4",
+        "workforce": "Page 4",
+        "capacity_gaps": "Page 5",
+    }
 
-        html.H2(
-            "Executive Snapshot",
-            style={
-                "marginBottom": "16px",
-                "color": "#0F172A",
-            },
-        ),
+def build_layout():
+    stats = get_summary_stats()
 
-        html.Div(
-            [
+    return html.Div(
+        [
+            html.H1(
+                "Healthcare Operations Intelligence Dashboard",
+                style={
+                    "fontSize": "28px",
+                    "fontWeight": "700",
+                    "color": "#0F172A",
+                    "marginBottom": "10px",
+                },
+            ),
+            html.Div(
+                "Executive Overview | Decision Support",
+                style={"fontSize": "18px", "color": "#64748B", "marginBottom": "24px"},
+            ),
 
-                kpi_card("CURRENTLY ADMITTED", f"{get_currently_admitted():,}", "Active patients as of latest data", icon="fa-bed-pulse", color="#EF4444"),
+            html.H2(
+                "Executive Snapshot",
+                style={
+                    "fontSize": "28px",
+                    "fontWeight": "700",
+                    "color": "#0F172A",
+                    "marginBottom": "16px",
+                },
+            ),
 
-                kpi_card("BED UTILIZATION", "Page 4", "Department occupancy analysis", icon="fa-hospital", color="#3B82F6"),
-                kpi_card("WORKFORCE", "Page 4", "Staffing efficiency analysis", icon="fa-user-nurse", color="#8B5CF6"),
+            html.Div(
+                [
+                    kpi_card(
+                        "CURRENTLY ADMITTED",
+                        format_kpi(stats["currently_admitted"]),
+                        "Active patients as of latest data",
+                        icon="fa-bed",
+                        color="#0F172A",
+                    ),
+                    kpi_card(
+                        "BED UTILIZATION",
+                        str(stats["bed_utilization"]),
+                        "Department occupancy analysis",
+                        icon="fa-bed",
+                        color="#0F172A",
+                    ),
+                    kpi_card(
+                        "WORKFORCE",
+                        str(stats["workforce"]),
+                        "Staffing efficiency analysis",
+                        icon="fa-user-doctor",
+                        color="#0F172A",
+                    ),
+                    kpi_card(
+                        "CAPACITY GAPS",
+                        str(stats["capacity_gaps"]),
+                        "Benchmark comparison",
+                        icon="fa-chart-line",
+                        color="#0F172A",
+                    ),
+                ],
+                style={
+                    "display": "grid",
+                    "gridTemplateColumns": "repeat(4, minmax(0, 1fr))",
+                    "gap": "16px",
+                    "marginBottom": "24px",
+                },
+            ),
 
-                kpi_card("CAPACITY GAPS", "Page 5", "Benchmark comparison", icon="fa-chart-line", color="#F59E0B"),
-            ],
-            style={
-                "display": "grid",
-                "gridTemplateColumns": "repeat(4, 1fr)",
-                "gap": "18px",
-                "marginBottom": "32px",
-            },
-        ),
+            html.Div(
+                [
+                    html.H3(
+                        "Operational Overview",
+                        style={
+                            "fontSize": "22px",
+                            "fontWeight": "700",
+                            "color": "#0F172A",
+                            "marginBottom": "12px",
+                        },
+                    ),
+                    html.Div(
+                        "This executive view brings together the major healthcare operations areas analyzed across the dashboard. Management can use the detailed pages to review patient flow, discharge and treatment demand, operational bottlenecks, workforce utilization, and resource capacity gaps.",
+                        style={
+                            "fontSize": "18px",
+                            "color": "#334155",
+                            "backgroundColor": "#F8FAFC",
+                            "padding": "20px 24px",
+                            "borderRadius": "12px",
+                            "border": "1px solid #E2E8F0",
+                        },
+                    ),
+                ],
+                style={"marginBottom": "24px"},
+            ),
 
-        # -------------------------------------------------
-        # Operational Overview
-        # -------------------------------------------------
+            html.H3(
+                "Detailed Operational Views",
+                style={
+                    "fontSize": "22px",
+                    "fontWeight": "700",
+                    "color": "#0F172A",
+                    "marginBottom": "16px",
+                },
+            ),
 
-        html.Div(
-            [
+            html.Div(
+                [
+                    kpi_card("Patient Flow", "Admissions and department patient load", "Patient flow overview", icon="fa-stethoscope", color="#0F172A"),
+                    kpi_card("Discharge & Treatment", "Discharge flow and treatment demand", "Discharge and treatment demand", icon="fa-hospital-user", color="#0F172A"),
+                    kpi_card("Bottlenecks & Surgery", "Operational bottlenecks and surgery workload", "Surgery and bottlenecks", icon="fa-user-nurse", color="#0F172A"),
+                ],
+                style={
+                    "display": "grid",
+                    "gridTemplateColumns": "repeat(3, minmax(0, 1fr))",
+                    "gap": "16px",
+                },
+            ),
+        ],
+        style={"padding": "24px", "backgroundColor": "#F8FAFC", "minHeight": "100vh"},
+    )
 
-                html.H2(
-                    "Operational Overview",
-                    style={
-                        "marginTop": "0",
-                        "color": "#0F172A",
-                    },
-                ),
-
-                html.P(
-                    "This executive view brings together the major healthcare "
-                    "operations areas analyzed across the dashboard. "
-                    "Management can use the detailed pages to review patient "
-                    "flow, discharge and treatment demand, operational "
-                    "bottlenecks, workforce utilization, and resource "
-                    "capacity gaps.",
-                    style={
-                        "lineHeight": "1.7",
-                        "color": "#475569",
-                        "marginBottom": "0",
-                    },
-                ),
-
-            ],
-            style={
-                "backgroundColor": "#F8FAFC",
-                "padding": "24px",
-                "borderRadius": "12px",
-                "border": "1px solid #E2E8F0",
-                "marginBottom": "28px",
-            },
-        ),
-
-        # -------------------------------------------------
-        # Detailed Operational Views
-        # -------------------------------------------------
-
-        html.H2(
-            "Detailed Operational Views",
-            style={
-                "marginBottom": "16px",
-                "color": "#0F172A",
-            },
-        ),
-
-        html.Div(
-            [
-
-                html.A(
-                    [
-                        html.H3(
-                            "Patient Flow",
-                            style={"marginTop": "0"},
-                        ),
-                        html.P(
-                            "Admissions and department patient load",
-                            style={"marginBottom": "0"},
-                        ),
-                    ],
-                    href="/page1",
-                    style={
-                        "textDecoration": "none",
-                        "color": "#0F172A",
-                        "backgroundColor": "#FFFFFF",
-                        "padding": "20px",
-                        "borderRadius": "12px",
-                        "border": "1px solid #E2E8F0",
-                    },
-                ),
-
-                html.A(
-                    [
-                        html.H3(
-                            "Discharge & Treatment",
-                            style={"marginTop": "0"},
-                        ),
-                        html.P(
-                            "Discharge flow and treatment demand",
-                            style={"marginBottom": "0"},
-                        ),
-                    ],
-                    href="/page2",
-                    style={
-                        "textDecoration": "none",
-                        "color": "#0F172A",
-                        "backgroundColor": "#FFFFFF",
-                        "padding": "20px",
-                        "borderRadius": "12px",
-                        "border": "1px solid #E2E8F0",
-                    },
-                ),
-
-                html.A(
-                    [
-                        html.H3(
-                            "Bottlenecks & Surgery",
-                            style={"marginTop": "0"},
-                        ),
-                        html.P(
-                            "Operational bottlenecks and surgery workload",
-                            style={"marginBottom": "0"},
-                        ),
-                    ],
-                    href="/page3",
-                    style={
-                        "textDecoration": "none",
-                        "color": "#0F172A",
-                        "backgroundColor": "#FFFFFF",
-                        "padding": "20px",
-                        "borderRadius": "12px",
-                        "border": "1px solid #E2E8F0",
-                    },
-                ),
-
-                html.A(
-                    [
-                        html.H3(
-                            "Bed & Workforce",
-                            style={"marginTop": "0"},
-                        ),
-                        html.P(
-                            "Bed utilization and staffing efficiency",
-                            style={"marginBottom": "0"},
-                        ),
-                    ],
-                    href="/page4",
-                    style={
-                        "textDecoration": "none",
-                        "color": "#0F172A",
-                        "backgroundColor": "#FFFFFF",
-                        "padding": "20px",
-                        "borderRadius": "12px",
-                        "border": "1px solid #E2E8F0",
-                    },
-                ),
-
-                html.A(
-                    [
-                        html.H3(
-                            "Resources & Benchmarks",
-                            style={"marginTop": "0"},
-                        ),
-                        html.P(
-                            "Resource utilization and capacity gaps",
-                            style={"marginBottom": "0"},
-                        ),
-                    ],
-                    href="/page5",
-                    style={
-                        "textDecoration": "none",
-                        "color": "#0F172A",
-                        "backgroundColor": "#FFFFFF",
-                        "padding": "20px",
-                        "borderRadius": "12px",
-                        "border": "1px solid #E2E8F0",
-                    },
-                ),
-
-            ],
-            style={
-                "display": "grid",
-                "gridTemplateColumns": "repeat(3, 1fr)",
-                "gap": "16px",
-            },
-        ),
-
-    ],
-    style={
-        "padding": "32px",
-        "fontFamily": "Arial, sans-serif",
-        "backgroundColor": "#FFFFFF",
-        "minHeight": "100vh",
-    },
-)
+layout = build_layout()

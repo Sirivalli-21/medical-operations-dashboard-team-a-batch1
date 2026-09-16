@@ -1,5 +1,5 @@
 """
-Medical Operations Intelligence Dashboard — Milestone 2
+Medical Operations Intelligence Dashboard — Milestone 4
 Main entry point. Run from the REPO ROOT:
     python dashboard/app.py
 Then open http://localhost:8050
@@ -11,46 +11,53 @@ from dash import Dash, html, dcc
 app = Dash(__name__, use_pages=True, suppress_callback_exceptions=True)
 server = app.server
 
+app.index_string = '''
+<!DOCTYPE html>
+<html>
+    <head>
+        {%metas%}
+        <title>{%title%}</title>
+        {%favicon%}
+        {%css%}
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    </head>
+    <body>
+        {%app_entry%}
+        <footer>
+            {%config%}
+            {%scripts%}
+            {%renderer%}
+        </footer>
+    </body>
+</html>
+'''
+
 app.layout = html.Div(
     [
         html.Div(
             [
-                html.H1("Medical Operations Intelligence Dashboard", style={"margin": "0"}),
+                html.Div(
+    [
+        html.I(className="fa-solid fa-house-medical", style={"marginRight": "8px"}),
+        "MedCore Analytics",
+    ],
+    className="sidebar-logo",
+),
                 html.Div(
                     [
-                        dcc.Link(
-                            page["name"],
-                            href=page["path"],
-                            style={
-                                "padding": "8px 14px",
-                                "borderRadius": "8px",
-                                "textDecoration": "none",
-                                "color": "#0F172A",
-                                "fontWeight": "600",
-                                "fontSize": "13px",
-                                "backgroundColor": "#F8FAFC",
-                                "border": "1px solid #E2E8F0",
-                            },
-                        )
+                        dcc.Link(page["name"], href=page["path"], className="sidebar-link")
                         for page in dash.page_registry.values()
-                    ],
-                    style={
-                        "marginTop": "14px",
-                        "display": "flex",
-                        "flexWrap": "wrap",
-                        "gap": "8px",
-                    },
+                    ]
                 ),
             ],
-            style={
-                "padding": "20px 24px",
-                "borderBottom": "1px solid #e0e0e0",
-                "fontFamily": "Arial, sans-serif",
-            },
+            className="sidebar",
         ),
-        dash.page_container,
-    ],
-    style={"fontFamily": "Arial, sans-serif"},
+        html.Div(
+            dash.page_container,
+            className="main-content",
+        ),
+    ]
 )
+
 if __name__ == "__main__":
     app.run(debug=True)

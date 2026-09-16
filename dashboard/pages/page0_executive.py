@@ -42,7 +42,7 @@ dash.register_page(
 # Reusable KPI card
 # ---------------------------------------------------------
 
-def kpi_card(title, value, description):
+def kpi_card(title, value, description, icon="fa-chart-simple", color="#0F172A"):
     return html.Div(
         [
             html.P(
@@ -138,30 +138,12 @@ layout = html.Div(
         html.Div(
             [
 
-                kpi_card(
-                    "CURRENTLY ADMITTED",
-                    f"{get_currently_admitted():,}",
-                    "Active patients as of latest data",
-                ),
+                kpi_card("CURRENTLY ADMITTED", f"{get_currently_admitted():,}", "Active patients as of latest data", icon="fa-bed-pulse", color="#EF4444"),
 
-                kpi_card(
-                    "BED UTILIZATION",
-                    "Page 4",
-                    "Department occupancy analysis",
-                ),
+                kpi_card("BED UTILIZATION", "Page 4", "Department occupancy analysis", icon="fa-hospital", color="#3B82F6"),
+                kpi_card("WORKFORCE", "Page 4", "Staffing efficiency analysis", icon="fa-user-nurse", color="#8B5CF6"),
 
-                kpi_card(
-                    "WORKFORCE",
-                    "Page 4",
-                    "Staffing efficiency analysis",
-                ),
-
-                kpi_card(
-                    "CAPACITY GAPS",
-                    "Page 5",
-                    "Benchmark comparison",
-                ),
-
+                kpi_card("CAPACITY GAPS", "Page 5", "Benchmark comparison", icon="fa-chart-line", color="#F59E0B"),
             ],
             style={
                 "display": "grid",

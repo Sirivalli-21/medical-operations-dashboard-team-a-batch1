@@ -12,6 +12,7 @@ dash.register_page(
     __name__,
     path="/page8",
     name="Data Integration",
+    order=8,
 )
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "milestone3", "data", "processed")
@@ -65,27 +66,18 @@ ROWS, TOTAL_ROWS, TOTAL_NULLS, TOTAL_DUPES = load_stats()
 
 
 # ---------------------------------------------------------
-# Reusable KPI card (same style as page0)
+# Reusable KPI card (icon-enabled, matches page0's style)
 # ---------------------------------------------------------
 
-def kpi_card(title, value, description):
+def kpi_card(title, value, description, icon="fa-chart-simple", color="#0F172A"):
     return html.Div(
         [
-            html.P(title, style={
-                "margin": "0 0 8px 0", "fontSize": "13px", "fontWeight": "700",
-                "color": "#64748B", "letterSpacing": "0.5px",
-            }),
-            html.H2(value, style={
-                "margin": "0", "fontSize": "30px", "fontWeight": "700", "color": "#0F172A",
-            }),
-            html.P(description, style={
-                "margin": "8px 0 0 0", "fontSize": "13px", "color": "#64748B",
-            }),
+            html.I(className=f"fa-solid {icon} kpi-icon", style={"color": color}),
+            html.P(title, className="kpi-label"),
+            html.H2(value, className="kpi-value", style={"color": color}),
+            html.P(description, className="kpi-subtext"),
         ],
-        style={
-            "backgroundColor": "#FFFFFF", "padding": "22px", "borderRadius": "12px",
-            "border": "1px solid #E2E8F0", "boxShadow": "0 2px 6px rgba(15, 23, 42, 0.06)",
-        },
+        className="kpi-card",
     )
 
 
@@ -116,10 +108,10 @@ layout = html.Div([
     }),
 
     html.Div([
-        kpi_card("TOTAL DATASETS", str(len(DATASETS)), "Cleaned CSV files integrated"),
-        kpi_card("TOTAL ROWS", f"{TOTAL_ROWS:,}", "Across all datasets"),
-        kpi_card("TOTAL NULLS", f"{TOTAL_NULLS:,}", "Remaining null values"),
-        kpi_card("TOTAL DUPLICATES", f"{TOTAL_DUPES:,}", "Remaining duplicate rows"),
+        kpi_card("DATASETS INTEGRATED", str(len(DATASETS)), "Cleaned CSVs from Milestone 1", icon="fa-database", color="#3B82F6"),
+        kpi_card("TOTAL RECORDS", f"{TOTAL_ROWS:,}", "Combined rows across all datasets", icon="fa-table", color="#0F172A"),
+        kpi_card("NULL VALUES FOUND", str(TOTAL_NULLS), "Post-cleaning validation check", icon="fa-triangle-exclamation", color="#F59E0B"),
+        kpi_card("DUPLICATE ROWS FOUND", str(TOTAL_DUPES), "Post-cleaning validation check", icon="fa-clone", color="#EF4444"),
     ], style={
         "display": "grid", "gridTemplateColumns": "repeat(4, 1fr)", "gap": "16px",
         "marginBottom": "28px",

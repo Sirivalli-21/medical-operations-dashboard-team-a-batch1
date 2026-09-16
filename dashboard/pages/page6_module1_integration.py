@@ -1,9 +1,4 @@
-﻿"""
-Dashboard Page 6 - Data Integration Overview
-Member 6 - Module 1 Integration
-"""
-
-import os
+﻿import os
 import dash
 from dash import html
 import pandas as pd
@@ -27,6 +22,10 @@ DATASETS = [
     ("Surgeries", "surgeries_clean_fixed.csv"),
 ]
 
+def format_number(value):
+    if value is None or pd.isna(value):
+        return "0"
+    return f"{int(float(value)):,}"
 
 def load_stats():
     rows = []
@@ -44,7 +43,7 @@ def load_stats():
             continue
 
         df = pd.read_csv(path)
-        row_count = len(df)
+        row_count = int(len(df))
         null_count = int(df.isnull().sum().sum())
         dupe_count = int(df.duplicated().sum())
 
@@ -54,36 +53,14 @@ def load_stats():
 
         rows.append({
             "label": label, "filename": filename,
-            "row_count": f"{row_count:,}",
-            "null_count": null_count,
-            "dupe_count": dupe_count,
+            "row_count": format_number(row_count),
+            "null_count": format_number(null_count),
+            "dupe_count": format_number(dupe_count),
         })
 
     return rows, total_rows, total_nulls, total_dupes
 
-
 ROWS, TOTAL_ROWS, TOTAL_NULLS, TOTAL_DUPES = load_stats()
-
-
-# ---------------------------------------------------------
-# Reusable KPI card (icon-enabled, matches page0's style)
-# ---------------------------------------------------------
-
-def kpi_card(title, value, description, icon="fa-chart-simple", color="#0F172A"):
-    return html.Div(
-        [
-            html.I(className=f"fa-solid {icon} kpi-icon", style={"color": color}),
-            html.P(title, className="kpi-label"),
-            html.H2(value, className="kpi-value", style={"color": color}),
-            html.P(description, className="kpi-subtext"),
-        ],
-        className="kpi-card",
-    )
-
-
-# ---------------------------------------------------------
-# Dataset table row
-# ---------------------------------------------------------
 
 def dataset_row(row):
     return html.Tr([
@@ -93,11 +70,6 @@ def dataset_row(row):
         html.Td(str(row["null_count"]), style={"padding": "12px", "color": "#0F172A"}),
         html.Td(str(row["dupe_count"]), style={"padding": "12px", "color": "#0F172A"}),
     ], style={"borderBottom": "1px solid #E2E8F0"})
-
-
-# ---------------------------------------------------------
-# Page layout
-# ---------------------------------------------------------
 
 layout = html.Div([
     html.H1("Data Integration Overview", style={
@@ -109,32 +81,11 @@ layout = html.Div([
 
     html.Div([
         kpi_card("DATASETS INTEGRATED", str(len(DATASETS)), "Cleaned CSVs from Milestone 1", icon="fa-database", color="#3B82F6"),
-        kpi_card("TOTAL RECORDS", f"{TOTAL_ROWS:,}", "Combined rows across all datasets", icon="fa-table", color="#0F172A"),
-        kpi_card("NULL VALUES FOUND", str(TOTAL_NULLS), "Post-cleaning validation check", icon="fa-triangle-exclamation", color="#F59E0B"),
-        kpi_card("DUPLICATE ROWS FOUND", str(TOTAL_DUPES), "Post-cleaning validation check", icon="fa-clone", color="#EF4444"),
+        kpi_card("TOTAL RECORDS", format_number(TOTAL_ROWS), "Combined rows across all datasets", icon="fa-table", color="#0F172A"),
+        kpi_card("NULL VALUES FOUND", format_number(TOTAL_NULLS), "Post-cleaning validation check", icon="fa-triangle-exclamation", color="#F59E0B"),
+        kpi_card("DUPLICATE ROWS FOUND", format_number(TOTAL_DUPES), "Post-cleaning validation check", icon="fa-clone", color="#EF4444"),
     ], style={
         "display": "grid", "gridTemplateColumns": "repeat(4, 1fr)", "gap": "16px",
         "marginBottom": "28px",
-    }),
-
-    html.Div([
-        html.H3("Dataset Summary", style={
-            "fontSize": "16px", "fontWeight": "700", "color": "#0F172A", "marginBottom": "14px",
-        }),
-        html.Table([
-            html.Thead(html.Tr([
-                html.Th("Dataset", style={"padding": "12px", "textAlign": "left", "color": "#64748B", "fontSize": "13px"}),
-                html.Th("File", style={"padding": "12px", "textAlign": "left", "color": "#64748B", "fontSize": "13px"}),
-                html.Th("Rows", style={"padding": "12px", "textAlign": "left", "color": "#64748B", "fontSize": "13px"}),
-                html.Th("Nulls", style={"padding": "12px", "textAlign": "left", "color": "#64748B", "fontSize": "13px"}),
-                html.Th("Duplicates", style={"padding": "12px", "textAlign": "left", "color": "#64748B", "fontSize": "13px"}),
-            ])),
-            html.Tbody([dataset_row(row) for row in ROWS]),
-        ], style={
-            "width": "100%", "borderCollapse": "collapse",
-        }),
-    ], style={
-        "backgroundColor": "#FFFFFF", "padding": "22px", "borderRadius": "12px",
-        "border": "1px solid #E2E8F0",
     }),
 ])

@@ -11,8 +11,7 @@ import dash
 from dash import html
 from page1_admissions_component import admissions_section
 
-dash.register_page(__name__, path="/", name="Page 1: Patient Flow")
-
+dash.register_page(__name__, path="/page1", name="Page 1: Patient Flow")
 layout = html.Div(
     [
         admissions_section,

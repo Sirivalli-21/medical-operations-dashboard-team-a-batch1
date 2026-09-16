@@ -10,7 +10,7 @@ import pandas as pd
 
 dash.register_page(
     __name__,
-    path="/page6",
+    path="/page8",
     name="Data Integration",
 )
 

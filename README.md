@@ -1,5 +1,7 @@
 # Development of a Healthcare Operations Intelligence Dashboard with Decision Analytics Group 1
 
+**Live App:** https://medical-operations-dashboard-team-a-h6ai.onrender.com/
+
 ## Project Overview
 The **Development of a Healthcare Operations Intelligence Dashboard with Decision Analytics Group 1** is a healthcare analytics project developed as part of the **Infosys Springboard Internship**. The project focuses on collecting, preprocessing, integrating, and analyzing healthcare datasets to generate meaningful insights and support dashboard development.
 
@@ -18,7 +20,9 @@ The **Development of a Healthcare Operations Intelligence Dashboard with Decisio
 * NumPy
 * Jupyter Notebook
 * Git
-* GitHub
+* Plotly Dash (dashboard framework)
+* Gunicorn (production server)
+* Render (deployment)
 
 ---
 
@@ -571,3 +575,9 @@ Milestone 4 delivers the Geographic Healthcare Intelligence & Executive Dashboar
 - Identify over- and under-served areas relative to existing facility locations.
 - Navigate a single, unified executive dashboard covering data integration, patient flow, resource utilization, and geographic coverage.
 - Access the fully deployed, end-to-end healthcare operations intelligence platform.
+
+## Quick Start
+
+1. Open the live app: https://medical-operations-dashboard-team-a-h6ai.onrender.com/
+2. Use the sidebar to navigate between pages — Executive Overview, Patient Flow, Discharge & Treatment, Bottlenecks & Surgery, Bed & Workforce, Resources & Benchmarks, Patient Distribution, Service Coverage, and Data Integration
+3. No setup or file upload needed — all datasets are pre-loaded and the dashboard computes live from them
